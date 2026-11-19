@@ -1,0 +1,162 @@
+name: CD
+
+# Solo se despliega con cambios incorporados a main (push o merge).
+# Un pull_request NO dispara este workflow, por lo tanto no despliega.
+on:
+  push:
+    branches: [main]
+
+# Evita dos despliegues al mismo tiempo sobre la misma EC2
+concurrency:
+  group: cd-produccion
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  # 1. Pruebas: si fallan, no se construye ni se despliega nada
+  pruebas:
+    name: Ejecutar pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v6
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Revisar el codigo con ESLint
+        run: npm run lint
+
+      - name: Ejecutar pruebas
+        run: npm test
+
+  # 2. Construir la imagen y publicarla en Docker Hub con el SHA del commit
+  imagen:
+    name: Construir y publicar imagen
+    needs: pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v6
+
+      - name: Iniciar sesion en Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Construir y publicar la imagen
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/api-libros:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/api-libros:latest
+
+  # 3. Desplegar en EC2 la imagen identificada con el SHA del commit
+  despliegue:
+    name: Desplegar en EC2
+    needs: imagen
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
+    steps:
+      # El grupo de EC2 solo acepta SSH desde la IP de la estudiante.
+      # Se abre el puerto 22 solo para la IP de este runner y se cierra al final.
+      - name: Obtener la IP publica del runner
+        id: ip
+        run: echo "ip=$(curl -s https://checkip.amazonaws.com)" >> "$GITHUB_OUTPUT"
+
+      - name: Abrir SSH temporalmente para el runner
+        run: |
+          aws ec2 authorize-security-group-ingress \
+            --group-id ${{ secrets.EC2_SG_ID }} \
+            --protocol tcp --port 22 \
+            --cidr ${{ steps.ip.outputs.ip }}/32
+
+      - name: Desplegar la nueva imagen con comprobacion y rollback
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            IMAGE="${{ secrets.DOCKER_USERNAME }}/api-libros:${{ github.sha }}"
+            APP="api-libros"
+            ENV_FILE="/home/ubuntu/api-libros.env"
+
+            # Imagen que esta funcionando ahora (para poder restaurarla)
+            PREV=$(docker inspect --format '{{.Config.Image}}' "$APP" 2>/dev/null || true)
+            echo "Version actual: ${PREV:-ninguna}"
+            echo "Version nueva:  $IMAGE"
+
+            docker pull "$IMAGE" || exit 1
+
+            # 1. Probar la nueva version en un puerto interno alterno (3001)
+            docker rm -f "$APP-nuevo" 2>/dev/null || true
+            docker run -d --name "$APP-nuevo" --env-file "$ENV_FILE" -p 127.0.0.1:3001:3000 "$IMAGE"
+
+            OK=0
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              sleep 3
+              if curl -sf http://127.0.0.1:3001/health && curl -sf http://127.0.0.1:3001/libros > /dev/null; then
+                OK=1
+                break
+              fi
+            done
+
+            if [ "$OK" != "1" ]; then
+              echo "La nueva version NO paso /health o /libros. Se conserva la version anterior."
+              docker logs --tail 20 "$APP-nuevo"
+              docker rm -f "$APP-nuevo"
+              exit 1
+            fi
+            docker rm -f "$APP-nuevo"
+
+            # 2. Reemplazar la version activa (solo en 127.0.0.1:3000, detras de Nginx)
+            docker rm -f "$APP" 2>/dev/null || true
+            docker run -d --name "$APP" --restart unless-stopped --env-file "$ENV_FILE" -p 127.0.0.1:3000:3000 "$IMAGE"
+            sleep 5
+
+            # 3. Comprobar a traves de Nginx; si falla, restaurar la version anterior
+            if curl -sf http://127.0.0.1/health && curl -sf http://127.0.0.1/libros > /dev/null; then
+              echo ""
+              echo "Despliegue exitoso: $IMAGE"
+            else
+              echo "Fallo la comprobacion despues del cambio. Restaurando: ${PREV:-ninguna}"
+              docker rm -f "$APP"
+              if [ -n "$PREV" ]; then
+                docker run -d --name "$APP" --restart unless-stopped --env-file "$ENV_FILE" -p 127.0.0.1:3000:3000 "$PREV"
+              fi
+              exit 1
+            fi
+
+            docker image prune -f
+
+      - name: Verificar /health y /libros desde Internet
+        run: |
+          curl -sf http://${{ secrets.SSH_HOST }}/health
+          echo ""
+          curl -sf http://${{ secrets.SSH_HOST }}/libros
+          echo ""
+
+      - name: Cerrar el SSH temporal
+        if: always() && steps.ip.outputs.ip != ''
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-id ${{ secrets.EC2_SG_ID }} \
+            --protocol tcp --port 22 \
+            --cidr ${{ steps.ip.outputs.ip }}/32 || true
