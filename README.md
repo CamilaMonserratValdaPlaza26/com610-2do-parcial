@@ -274,7 +274,48 @@ El resto de capturas, explicadas una por una, están en [evidencias/README.md](e
 
 ## Ejercicio 2 — CI/CD con GitHub Actions
 
-*Sección en construcción: aquí se documentarán el workflow de CI, el Dockerfile, el workflow de CD y los enlaces a las ejecuciones exitosas.*
+### Integración continua (CI)
+
+El archivo `.github/workflows/ci.yml` se ejecuta automáticamente en cada `push` y en cada `pull_request` hacia `main`. Hace lo siguiente:
+
+- Descarga el código y configura Node.js 20.
+- Instala las dependencias con `npm ci`.
+- Revisa el código con ESLint (`npm run lint`).
+- Ejecuta las pruebas con `npm test`. Si una prueba falla, el comando termina con error y la ejecución queda marcada como fallida.
+
+**Ejecución exitosa de CI:** https://github.com/CamilaMonserratValdaPlaza26/com610-2do-parcial/actions/runs/44635262211
+
+![CI con las 8 pruebas aprobadas](evidencias/ej2-13-ci-pruebas-aprobadas.png)
+
+### Imagen Docker
+
+El `Dockerfile` construye la imagen en dos etapas con `node:20-alpine`. La primera instala solo las dependencias de producción; la segunda copia `server.js` y `src/` y ejecuta la API como el usuario `node`. El `.dockerignore` evita que `.env`, las claves y las pruebas entren a la imagen.
+
+La configuración de RDS **no** está dentro de la imagen: se pasa al ejecutar el contenedor. Para probarla localmente:
+
+```bash
+docker build -t api-libros:local .
+```
+
+Construye la imagen a partir del `Dockerfile`.
+
+```bash
+docker run -d --name api-libros-local -p 3000:3000 --env-file .env.example api-libros:local
+```
+
+Ejecuta el contenedor y le entrega las variables de entorno desde un archivo, en este caso los valores ficticios de `.env.example`.
+
+```bash
+curl -i http://localhost:3000/health
+```
+
+Responde 200 con `"status":"ok"`. Desde un equipo local `/libros` no funciona, porque RDS solo acepta conexiones desde la EC2.
+
+![Contenedor respondiendo en /health](evidencias/ej2-08-docker-health-200.png)
+
+### Despliegue continuo (CD)
+
+*Sección en construcción: aquí se documentarán el workflow de CD, la publicación de la imagen, el despliegue en EC2 y la conservación de la versión anterior ante fallos.*
 
 ## Evidencias
 

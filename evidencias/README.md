@@ -24,6 +24,10 @@ Cada captura incluye una explicación breve de lo que se hizo y lo que demuestra
 
 ![00-04](00-04-env-example-valores-ficticios.png)
 
+**00-05** — Se subieron el README y las evidencias del ejercicio 1 con `git add`, `git commit` y `git push`.
+
+![00-05](00-05-commit-push-readme-y-evidencias.png)
+
 ## Ejercicio 1 — API REST en EC2 con RDS
 
 ### 1. EC2, RDS y grupos de seguridad (15 pts)
@@ -273,3 +277,61 @@ Cada captura incluye una explicación breve de lo que se hizo y lo que demuestra
 **ej1-58** — La página raíz `/` lista todos los endpoints de la API.
 
 ![ej1-58](ej1-58-navegador-raiz-endpoints.png)
+
+## Ejercicio 2 — CI/CD para la API
+
+### 1. Pruebas automatizadas y workflow de CI (15 pts)
+
+**ej2-01** — Se creó `.github/workflows/ci.yml`: se ejecuta en cada `push` y `pull_request` hacia `main`, instala con `npm ci`, revisa el código con ESLint y corre `npm test`. Si una prueba falla, la ejecución queda en rojo.
+
+![ej2-01](ej2-01-ci-yml-workflow.png)
+
+**ej2-05** — Configuración de ESLint que usa el paso de revisión del CI, con las variables globales de Node.js y Jest.
+
+![ej2-05](ej2-05-eslint-config.png)
+
+**ej2-10** — Se subieron `ci.yml`, el `Dockerfile`, el `.dockerignore` y el cambio de `/health` con `git push`, lo que dispara el CI automáticamente.
+
+![ej2-10](ej2-10-commit-push-ci-y-dockerfile.png)
+
+**ej2-11** — En la pestaña Actions aparece la ejecución **CI #1** del commit `a3c81ae`, en cola, iniciada por el `push` a `main`.
+
+![ej2-11](ej2-11-ci-en-cola.png)
+
+**ej2-12** — La ejecución de CI terminó con éxito (check verde) en 18 segundos.
+
+![ej2-12](ej2-12-ci-exitoso.png)
+
+**ej2-13** — Dentro del job *Lint y pruebas*, el paso *Ejecutar pruebas* muestra las **8 pruebas aprobadas**: `/health`, creación válida (201), datos inválidos (400) y libro inexistente (404). Corren sin RDS, porque la capa de datos se simula con `jest.mock`.
+
+![ej2-13](ej2-13-ci-pruebas-aprobadas.png)
+
+### 2. Dockerfile e imagen ejecutable con configuración externa (10 pts)
+
+**ej2-04** — Se creó un `Dockerfile` de dos etapas con `node:20-alpine`: la primera instala solo las dependencias de producción y la segunda copia lo necesario y ejecuta la API como usuario `node`. La configuración de RDS no se copia a la imagen.
+
+![ej2-04](ej2-04-dockerfile.png)
+
+**ej2-03** — El `.dockerignore` deja fuera de la imagen `.env`, `*.pem`, `*.key`, `node_modules`, las pruebas y las evidencias.
+
+![ej2-03](ej2-03-dockerignore.png)
+
+**ej2-02** — Se agregó el campo `commit` a `/health`: muestra el SHA del commit con el que se construyó la imagen, para saber qué versión está desplegada.
+
+![ej2-02](ej2-02-health-campo-commit.png)
+
+**ej2-06** — Se construyó la imagen localmente con `docker build -t api-libros:local .`; las 13 etapas terminaron sin errores.
+
+![ej2-06](ej2-06-docker-build.png)
+
+**ej2-07** — Se ejecutó el contenedor con `docker run --env-file .env.example`: la configuración de RDS llega por variables de entorno y no está dentro de la imagen. `docker ps` muestra `api-libros-local` en estado *Up*.
+
+![ej2-07](ej2-07-docker-run-env-file.png)
+
+**ej2-08** — `curl http://localhost:3000/health` responde **200** con `"status":"ok"` y `"commit":"local"`: el contenedor funciona.
+
+![ej2-08](ej2-08-docker-health-200.png)
+
+**ej2-09** — Se detuvo y eliminó el contenedor de prueba con `docker stop` y `docker rm`.
+
+![ej2-09](ej2-09-docker-stop-y-rm.png)
