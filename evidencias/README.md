@@ -1,342 +1,344 @@
 # Evidencias
 
-Capturas del segundo examen parcial (COM610) — Valda Plaza Camila Monserrat.
+Capturas del segundo examen parcial (COM610), Valda Plaza Camila Monserrat.
 
 Cada captura incluye una explicación breve de lo que se hizo y lo que demuestra. Las contraseñas y la IP del equipo local están tapadas con un recuadro negro ("OCULTO"). Lo más importante de algunas capturas está marcado con un recuadro gris y una flecha.
 
-**URL pública de la API:** http://52.200.202.166 · Volver al [README principal](../README.md)
+**URL pública de la API:** http://52.200.202.166
+
+Volver al [README principal](../README.md) o al [informe completo](../INFORME.md).
 
 ## Repositorio
 
-**00-01** — Se creó el repositorio **público** `com610-2do-parcial` en GitHub, para que el docente pueda abrirlo sin solicitar permisos.
+**00-01:** Se creó el repositorio **público** `com610-2do-parcial` en GitHub, para que el docente pueda abrirlo sin solicitar permisos.
 
 ![00-01](00-01-repo-github-publico-creado.png)
 
-**00-02** — Se subió la estructura inicial: `README.md`, `.gitignore` y `.env.example`.
+**00-02:** Se subió la estructura inicial: `README.md`, `.gitignore` y `.env.example`.
 
 ![00-02](00-02-repo-estructura-inicial.png)
 
-**00-03** — Se agregaron `*.pem` y `*.key` al `.gitignore` (que ya excluía `.env`), para que ninguna clave ni contraseña llegue al repositorio. Luego se ejecutaron `git add`, `git commit` y `git push`.
+**00-03:** Se agregaron `*.pem` y `*.key` al `.gitignore` (que ya excluía `.env`), para que ninguna clave ni contraseña llegue al repositorio. Luego se ejecutaron `git add`, `git commit` y `git push`.
 
 ![00-03](00-03-gitignore-y-push-inicial.png)
 
-**00-04** — El `.env.example` solo contiene valores de ejemplo: indica qué variables necesita la API sin publicar datos reales.
+**00-04:** El `.env.example` solo contiene valores de ejemplo: indica qué variables necesita la API sin publicar datos reales.
 
 ![00-04](00-04-env-example-valores-ficticios.png)
 
-**00-05** — Se subieron el README y las evidencias del ejercicio 1 con `git add`, `git commit` y `git push`.
+**00-05:** Se subieron el README y las evidencias del ejercicio 1 con `git add`, `git commit` y `git push`.
 
 ![00-05](00-05-commit-push-readme-y-evidencias.png)
 
-## Ejercicio 1 — API REST en EC2 con RDS
+## Ejercicio 1: API REST en EC2 con RDS
 
 ### 1. EC2, RDS y grupos de seguridad (15 pts)
 
-**ej1-01** — Se creó el par de claves `CMVP-key` (RSA, formato `.pem`) para la conexión SSH a la EC2.
+**ej1-01:** Se creó el par de claves `CMVP-key` (RSA, formato `.pem`) para la conexión SSH a la EC2.
 
 ![ej1-01](ej1-01-par-claves-crear.png)
 
-**ej1-02** — El par de claves quedó creado. El archivo `.pem` se guardó solo en el equipo local, fuera del repositorio.
+**ej1-02:** El par de claves quedó creado. El archivo `.pem` se guardó solo en el equipo local, fuera del repositorio.
 
 ![ej1-02](ej1-02-par-claves-creado.png)
 
-**ej1-03** — Se creó el grupo de seguridad `CMVP-ec2-sg` en la VPC predeterminada `vpc-0e74f945b159d53ec`, la misma donde luego se creó la RDS.
+**ej1-03:** Se creó el grupo de seguridad `CMVP-ec2-sg` en la VPC predeterminada `vpc-0e74f945b159d53ec`, la misma donde luego se creó la RDS.
 
 ![ej1-03](ej1-03-sg-ec2-crear-vpc.png)
 
-**ej1-04** — Se definieron dos reglas de entrada: **SSH 22** solo desde la **IP del equipo local** (`/32`), para que nadie más pueda administrar el servidor, y **HTTP 80** desde `0.0.0.0/0`, para que la API sea pública. No se abrieron los puertos 3000 ni 3306.
+**ej1-04:** Se definieron dos reglas de entrada: **SSH 22** solo desde la **IP del equipo local** (`/32`), para que nadie más pueda administrar el servidor, y **HTTP 80** desde `0.0.0.0/0`, para que la API sea pública. No se abrieron los puertos 3000 ni 3306.
 
 ![ej1-04](ej1-04-sg-ec2-reglas-22-mi-ip-80-publico.png)
 
-**ej1-05** — El grupo quedó creado con sus 2 reglas de entrada.
+**ej1-05:** El grupo quedó creado con sus 2 reglas de entrada.
 
 ![ej1-05](ej1-05-sg-ec2-creado.png)
 
-**ej1-06** — Se creó un grupo **separado** para la base de datos, `CMVP-rds-sg`, en la misma VPC.
+**ej1-06:** Se creó un grupo **separado** para la base de datos, `CMVP-rds-sg`, en la misma VPC.
 
 ![ej1-06](ej1-06-sg-rds-crear-vpc.png)
 
-**ej1-07** — Su única regla permite **MySQL 3306** solo cuando el origen es el grupo de la EC2 (`sg-0b24bdf2736ade74f`). Se usa el grupo y no una IP: así solo las instancias con `CMVP-ec2-sg` pueden conectarse a la base.
+**ej1-07:** Su única regla permite **MySQL 3306** solo cuando el origen es el grupo de la EC2 (`sg-0b24bdf2736ade74f`). Se usa el grupo y no una IP: así solo las instancias con `CMVP-ec2-sg` pueden conectarse a la base.
 
 ![ej1-07](ej1-07-sg-rds-regla-3306-desde-sg-ec2.png)
 
-**ej1-08** — El grupo de RDS quedó creado con esa única regla de entrada.
+**ej1-08:** El grupo de RDS quedó creado con esa única regla de entrada.
 
 ![ej1-08](ej1-08-sg-rds-creado.png)
 
-**ej1-09** — Se lanzó la instancia `CMVP-ec2-libros` con **Ubuntu Server 24.04 LTS**.
+**ej1-09:** Se lanzó la instancia `CMVP-ec2-libros` con **Ubuntu Server 24.04 LTS**.
 
 ![ej1-09](ej1-09-ec2-lanzar-nombre-ubuntu.png)
 
-**ej1-10** — Se eligió el tipo **t3.micro**, apto para la capa gratuita.
+**ej1-10:** Se eligió el tipo **t3.micro**, apto para la capa gratuita.
 
 ![ej1-10](ej1-10-ec2-tipo-t3-micro.png)
 
-**ej1-11** — Se asignaron el par de claves `CMVP-key`, la VPC predeterminada y una IP pública automática.
+**ej1-11:** Se asignaron el par de claves `CMVP-key`, la VPC predeterminada y una IP pública automática.
 
 ![ej1-11](ej1-11-ec2-par-claves-y-red.png)
 
-**ej1-12** — Se usó el grupo existente `CMVP-ec2-sg` y un disco gp3 de **16 GiB**, con espacio para Docker en el ejercicio 2.
+**ej1-12:** Se usó el grupo existente `CMVP-ec2-sg` y un disco gp3 de **16 GiB**, con espacio para Docker en el ejercicio 2.
 
 ![ej1-12](ej1-12-ec2-sg-y-almacenamiento-16gb.png)
 
-**ej1-13** — La instancia quedó *En ejecución*. Su ID de VPC es el mismo de los grupos de seguridad.
+**ej1-13:** La instancia quedó *En ejecución*. Su ID de VPC es el mismo de los grupos de seguridad.
 
 ![ej1-13](ej1-13-ec2-instancia-en-ejecucion.png)
 
-**ej1-14** — Se asignó una **Elastic IP** (`CMVP-eip`, 52.200.202.166). La IP normal cambia al reiniciar la instancia; esta no, por lo que la URL de la API se mantiene durante la revisión.
+**ej1-14:** Se asignó una **Elastic IP** (`CMVP-eip`, 52.200.202.166). La IP normal cambia al reiniciar la instancia; esta no, por lo que la URL de la API se mantiene durante la revisión.
 
 ![ej1-14](ej1-14-elastic-ip-asignada.png)
 
-**ej1-15** — Se asoció la Elastic IP a la instancia `CMVP-ec2-libros`.
+**ej1-15:** Se asoció la Elastic IP a la instancia `CMVP-ec2-libros`.
 
 ![ej1-15](ej1-15-elastic-ip-asociar-instancia.png)
 
-**ej1-16** — Se eligió la IP privada de la instancia para la asociación.
+**ej1-16:** Se eligió la IP privada de la instancia para la asociación.
 
 ![ej1-16](ej1-16-elastic-ip-ip-privada.png)
 
-**ej1-17** — AWS confirma que la Elastic IP quedó asociada.
+**ej1-17:** AWS confirma que la Elastic IP quedó asociada.
 
 ![ej1-17](ej1-17-elastic-ip-asociada.png)
 
-**ej1-18** — La lista de instancias muestra `CMVP-ec2-libros` en ejecución, en us-east-1c.
+**ej1-18:** La lista de instancias muestra `CMVP-ec2-libros` en ejecución, en us-east-1c.
 
 ![ej1-18](ej1-18-ec2-lista-instancias.png)
 
-**ej1-19** — El detalle de la instancia muestra la Elastic IP `52.200.202.166 (CMVP-eip)` y la VPC.
+**ej1-19:** El detalle de la instancia muestra la Elastic IP `52.200.202.166 (CMVP-eip)` y la VPC.
 
 ![ej1-19](ej1-19-ec2-detalle-elastic-ip-y-vpc.png)
 
-**ej1-20** — Se estableció la conexión desde el equipo local con `ssh -i "CMVP-key.pem" ubuntu@52.200.202.166`. Funciona porque la regla 22 permite esa IP.
+**ej1-20:** Se estableció la conexión desde el equipo local con `ssh -i "CMVP-key.pem" ubuntu@52.200.202.166`. Funciona porque la regla 22 permite esa IP.
 
 ![ej1-20](ej1-20-ssh-conexion-desde-pc.png)
 
-**ej1-21** — Dentro de la EC2, `hostname` y `cat /etc/os-release` confirman que la sesión está en el servidor y que el sistema es Ubuntu 24.04.5.
+**ej1-21:** Dentro de la EC2, `hostname` y `cat /etc/os-release` confirman que la sesión está en el servidor y que el sistema es Ubuntu 24.04.5.
 
 ![ej1-21](ej1-21-ssh-hostname-y-ubuntu.png)
 
-**ej1-22** — Se actualizó la lista de paquetes con `sudo apt update` antes de instalar software.
+**ej1-22:** Se actualizó la lista de paquetes con `sudo apt update` antes de instalar software.
 
 ![ej1-22](ej1-22-ec2-apt-update.png)
 
-**ej1-23** — Se creó la base de datos en RDS con motor **MySQL** y **configuración completa**, para definir manualmente la red y la seguridad.
+**ej1-23:** Se creó la base de datos en RDS con motor **MySQL** y **configuración completa**, para definir manualmente la red y la seguridad.
 
 ![ej1-23](ej1-23-rds-mysql-configuracion-completa.png)
 
-**ej1-24** — Se nombró `cmvp-rds-libros`, con usuario maestro `admin` y contraseña autoadministrada (no visible en la captura).
+**ej1-24:** Se nombró `cmvp-rds-libros`, con usuario maestro `admin` y contraseña autoadministrada (no visible en la captura).
 
 ![ej1-24](ej1-24-rds-identificador-y-credenciales.png)
 
-**ej1-25** — Se eligió la clase **db.t3.micro**, de la capa gratuita.
+**ej1-25:** Se eligió la clase **db.t3.micro**, de la capa gratuita.
 
 ![ej1-25](ej1-25-rds-clase-db-t3-micro.png)
 
-**ej1-26** — En conectividad se eligió la **misma VPC** que la EC2 y **Acceso público: No**: la base no tiene IP pública y solo es accesible desde dentro de la VPC.
+**ej1-26:** En conectividad se eligió la **misma VPC** que la EC2 y **Acceso público: No**: la base no tiene IP pública y solo es accesible desde dentro de la VPC.
 
 ![ej1-26](ej1-26-rds-misma-vpc-sin-acceso-publico.png)
 
-**ej1-27** — Se asignó solo el grupo `CMVP-rds-sg` (se quitó el `default`).
+**ej1-27:** Se asignó solo el grupo `CMVP-rds-sg` (se quitó el `default`).
 
 ![ej1-27](ej1-27-rds-sg-cmvp-rds-sg.png)
 
-**ej1-28** — Se definió `db_libros` como nombre de la base de datos inicial.
+**ej1-28:** Se definió `db_libros` como nombre de la base de datos inicial.
 
 ![ej1-28](ej1-28-rds-base-inicial-db-libros.png)
 
-**ej1-30** — La RDS quedó en estado **Disponible**.
+**ej1-30:** La RDS quedó en estado **Disponible**.
 
 ![ej1-30](ej1-30-rds-disponible.png)
 
-**ej1-30b** — Con la RDS ya creada, su regla de entrada muestra como origen `sg-0b24bdf2736ade74f`, el grupo de la EC2.
+**ej1-30b:** Con la RDS ya creada, su regla de entrada muestra como origen `sg-0b24bdf2736ade74f`, el grupo de la EC2.
 
 ![ej1-30b](ej1-30b-rds-regla-entrada-desde-sg-ec2.png)
 
 ### 2. Modelo SQL, conexión privada y persistencia en RDS (10 pts)
 
-**ej1-29** — En la EC2 se instaló el cliente de base de datos con `sudo apt install -y mariadb-client`.
+**ej1-29:** En la EC2 se instaló el cliente de base de datos con `sudo apt install -y mariadb-client`.
 
 ![ej1-29](ej1-29-ec2-instalar-mariadb-client.png)
 
-**ej1-31** — Se descargó el certificado de RDS (`global-bundle.pem`) y se estableció la conexión desde la EC2 al endpoint de RDS con `mariadb -h ... --ssl-verify-server-cert`. La conexión es privada y cifrada, y ya aparece `db_libros`.
+**ej1-31:** Se descargó el certificado de RDS (`global-bundle.pem`) y se estableció la conexión desde la EC2 al endpoint de RDS con `mariadb -h ... --ssl-verify-server-cert`. La conexión es privada y cifrada, y ya aparece `db_libros`.
 
 ![ej1-31](ej1-31-conexion-ec2-rds-ssl.png)
 
-**ej1-32** — Se escribió el archivo `db.sql`, que crea la base y la tabla, y se subió al repositorio.
+**ej1-32:** Se escribió el archivo `db.sql`, que crea la base y la tabla, y se subió al repositorio.
 
 ![ej1-32](ej1-32-db-sql-commit-y-push.png)
 
-**ej1-33** — Se ejecutó el contenido de `db.sql` en RDS: `USE db_libros` y `CREATE TABLE libros`.
+**ej1-33:** Se ejecutó el contenido de `db.sql` en RDS: `USE db_libros` y `CREATE TABLE libros`.
 
 ![ej1-33](ej1-33-crear-tabla-libros.png)
 
-**ej1-34** — `DESCRIBE libros` confirma las 4 columnas: `id` (autoincremental), `titulo`, `autor` y `anio_publicacion`.
+**ej1-34:** `DESCRIBE libros` confirma las 4 columnas: `id` (autoincremental), `titulo`, `autor` y `anio_publicacion`.
 
 ![ej1-34](ej1-34-describe-tabla-libros.png)
 
-**ej1-35** — Se creó el usuario `usr_libros` para la API, de modo que la aplicación no use el usuario `admin`.
+**ej1-35:** Se creó el usuario `usr_libros` para la API, de modo que la aplicación no use el usuario `admin`.
 
 ![ej1-35](ej1-35-crear-usuario-api.png)
 
-**ej1-36** — Tras un error de contraseña en la prueba, se redefinió con `ALTER USER` y `FLUSH PRIVILEGES`.
+**ej1-36:** Tras un error de contraseña en la prueba, se redefinió con `ALTER USER` y `FLUSH PRIVILEGES`.
 
 ![ej1-36](ej1-36-cambiar-contrasena-usuario-api.png)
 
-**ej1-37** — Se otorgaron permisos con `GRANT` y se revisaron con `SHOW GRANTS`: el usuario solo tiene acceso a `db_libros`, no a todo el servidor.
+**ej1-37:** Se otorgaron permisos con `GRANT` y se revisaron con `SHOW GRANTS`: el usuario solo tiene acceso a `db_libros`, no a todo el servidor.
 
 ![ej1-37](ej1-37-permisos-usuario-api.png)
 
-**ej1-56** — Después de las pruebas CRUD, la consulta `SELECT * FROM libros` en RDS muestra el libro 1 con el título actualizado y sin el libro 2. Esto demuestra que los datos se guardan en RDS y no en memoria.
+**ej1-56:** Después de las pruebas CRUD, la consulta `SELECT * FROM libros` en RDS muestra el libro 1 con el título actualizado y sin el libro 2. Esto demuestra que los datos se guardan en RDS y no en memoria.
 
 ![ej1-56](ej1-56-persistencia-rds-select.png)
 
 ### 3. Endpoints CRUD, respuestas HTTP y validación (15 pts)
 
-**ej1-38** — Se creó el proyecto con `npm init -y` y se instalaron `express` (servidor), `mysql2` (conexión a MySQL) y `dotenv` (lectura del `.env`).
+**ej1-38:** Se creó el proyecto con `npm init -y` y se instalaron `express` (servidor), `mysql2` (conexión a MySQL) y `dotenv` (lectura del `.env`).
 
 ![ej1-38](ej1-38-npm-init-y-dependencias.png)
 
-**ej1-39** — Se instalaron como dependencias de desarrollo `jest` y `supertest` (pruebas) y `eslint` (revisión de código).
+**ej1-39:** Se instalaron como dependencias de desarrollo `jest` y `supertest` (pruebas) y `eslint` (revisión de código).
 
 ![ej1-39](ej1-39-npm-dependencias-desarrollo.png)
 
-**ej1-40** — `npm list --depth=0` muestra todas las dependencias instaladas.
+**ej1-40:** `npm list --depth=0` muestra todas las dependencias instaladas.
 
 ![ej1-40](ej1-40-npm-list.png)
 
-**ej1-41** — Al ejecutar `npm test` pasan las **8 pruebas** sin RDS, porque la capa de datos se simula con `jest.mock`.
+**ej1-41:** Al ejecutar `npm test` pasan las **8 pruebas** sin RDS, porque la capa de datos se simula con `jest.mock`.
 
 ![ej1-41](ej1-41-npm-test-8-pruebas.png)
 
-**ej1-42** — Se subió el código de la API (`src/`, `server.js`, `tests/`, `package.json` y `package-lock.json`) con `git add`, `commit` y `push`.
+**ej1-42:** Se subió el código de la API (`src/`, `server.js`, `tests/`, `package.json` y `package-lock.json`) con `git add`, `commit` y `push`.
 
 ![ej1-42](ej1-42-commit-y-push-api.png)
 
-**ej1-43** — En la EC2 se agregó el repositorio de Node.js 20 y se instalaron `nodejs`, `git` y `nginx`.
+**ej1-43:** En la EC2 se agregó el repositorio de Node.js 20 y se instalaron `nodejs`, `git` y `nginx`.
 
 ![ej1-43](ej1-43-ec2-instalar-node-git-nginx.png)
 
-**ej1-44** — El `.env` se creó **solo en la EC2**, con el endpoint de RDS y el usuario `usr_libros` (contraseña oculta). Este archivo no se sube a GitHub.
+**ej1-44:** El `.env` se creó **solo en la EC2**, con el endpoint de RDS y el usuario `usr_libros` (contraseña oculta). Este archivo no se sube a GitHub.
 
 ![ej1-44](ej1-44-ec2-env-configurado.png)
 
-**ej1-45** — Se clonó el repositorio, se instalaron las dependencias de producción con `npm ci --omit=dev` y se protegió el `.env` con `chmod 600`.
+**ej1-45:** Se clonó el repositorio, se instalaron las dependencias de producción con `npm ci --omit=dev` y se protegió el `.env` con `chmod 600`.
 
 ![ej1-45](ej1-45-ec2-clonar-repo-npm-ci.png)
 
-**ej1-47** — Se instaló **PM2** y se arrancó la API con `pm2 start server.js --name api-libros`, para que se ejecute en segundo plano.
+**ej1-47:** Se instaló **PM2** y se arrancó la API con `pm2 start server.js --name api-libros`, para que se ejecute en segundo plano.
 
 ![ej1-47](ej1-47-pm2-instalar-y-arrancar.png)
 
-**ej1-48** — Prueba dentro de la EC2: `/health` responde ok y `/libros` devuelve `[]`, lo que confirma la conexión con RDS. Con `pm2 save` y `pm2 startup` la API vuelve a arrancar sola si la EC2 se reinicia.
+**ej1-48:** Prueba dentro de la EC2: `/health` responde ok y `/libros` devuelve `[]`, lo que confirma la conexión con RDS. Con `pm2 save` y `pm2 startup` la API vuelve a arrancar sola si la EC2 se reinicia.
 
 ![ej1-48](ej1-48-pm2-health-libros-startup.png)
 
-**ej1-46** — `pm2 list` muestra `api-libros` en estado **online**.
+**ej1-46:** `pm2 list` muestra `api-libros` en estado **online**.
 
 ![ej1-46](ej1-46-pm2-api-online.png)
 
 ### 4. Publicación con Nginx y verificación externa (10 pts)
 
-**ej1-49** — Se configuró Nginx como **proxy inverso**: recibe en el puerto 80 y reenvía a `127.0.0.1:3000`, donde escucha la API. Así el puerto 3000 nunca se expone.
+**ej1-49:** Se configuró Nginx como **proxy inverso**: recibe en el puerto 80 y reenvía a `127.0.0.1:3000`, donde escucha la API. Así el puerto 3000 nunca se expone.
 
 ![ej1-49](ej1-49-nginx-proxy-config.png)
 
-**ej1-50** — Se activó el sitio con `ln -s`, se quitó el sitio por defecto, se verificó la sintaxis con `nginx -t` y se recargó Nginx.
+**ej1-50:** Se activó el sitio con `ln -s`, se quitó el sitio por defecto, se verificó la sintaxis con `nginx -t` y se recargó Nginx.
 
 ![ej1-50](ej1-50-nginx-test-y-reload.png)
 
-**ej1-51** — Desde el navegador del equipo local, `http://52.200.202.166/health` responde `status: ok`.
+**ej1-51:** Desde el navegador del equipo local, `http://52.200.202.166/health` responde `status: ok`.
 
 ![ej1-51](ej1-51-navegador-health.png)
 
-**ej1-52** — **Crear:** desde el equipo local se enviaron dos `POST /libros` con curl; cada uno respondió **201 Created** con el libro y su `id`. La cabecera `Server: nginx` confirma que la petición pasó por Nginx.
+**ej1-52:** **Crear:** desde el equipo local se enviaron dos `POST /libros` con curl; cada uno respondió **201 Created** con el libro y su `id`. La cabecera `Server: nginx` confirma que la petición pasó por Nginx.
 
 ![ej1-52](ej1-52-crud-post-crear.png)
 
-**ej1-53** — **Consultar:** `GET /libros` respondió **200** con los dos libros. **Actualizar:** `PUT /libros/1` respondió **200** con el título nuevo.
+**ej1-53:** **Consultar:** `GET /libros` respondió **200** con los dos libros. **Actualizar:** `PUT /libros/1` respondió **200** con el título nuevo.
 
 ![ej1-53](ej1-53-crud-get-y-put.png)
 
-**ej1-54** — **Eliminar:** `DELETE /libros/2` respondió **200**. La consulta posterior `GET /libros/2` respondió **404**, porque el libro ya no existe.
+**ej1-54:** **Eliminar:** `DELETE /libros/2` respondió **200**. La consulta posterior `GET /libros/2` respondió **404**, porque el libro ya no existe.
 
 ![ej1-54](ej1-54-crud-delete-404-y-400.png)
 
-**ej1-55** — Se enviaron datos inválidos (título vacío y año "mil") y la API respondió **400** con la lista de errores.
+**ej1-55:** Se enviaron datos inválidos (título vacío y año "mil") y la API respondió **400** con la lista de errores.
 
 ![ej1-55](ej1-55-validacion-400.png)
 
-**ej1-59** — `PUT` y `DELETE` sobre un id inexistente (999) responden **404**. Además, `curl` al puerto 3000 termina en *timeout*: ese puerto no está abierto a Internet.
+**ej1-59:** `PUT` y `DELETE` sobre un id inexistente (999) responden **404**. Además, `curl` al puerto 3000 termina en *timeout*: ese puerto no está abierto a Internet.
 
 ![ej1-59](ej1-59-put-delete-404-y-puerto-3000-cerrado.png)
 
-**ej1-57** — En el navegador, `/libros` muestra el libro guardado en RDS, igual que el `SELECT`.
+**ej1-57:** En el navegador, `/libros` muestra el libro guardado en RDS, igual que el `SELECT`.
 
 ![ej1-57](ej1-57-navegador-libros.png)
 
-**ej1-58** — La página raíz `/` lista todos los endpoints de la API.
+**ej1-58:** La página raíz `/` lista todos los endpoints de la API.
 
 ![ej1-58](ej1-58-navegador-raiz-endpoints.png)
 
-## Ejercicio 2 — CI/CD para la API
+## Ejercicio 2: CI/CD para la API
 
 ### 1. Pruebas automatizadas y workflow de CI (15 pts)
 
-**ej2-01** — Se creó `.github/workflows/ci.yml`: se ejecuta en cada `push` y `pull_request` hacia `main`, instala con `npm ci`, revisa el código con ESLint y corre `npm test`. Si una prueba falla, la ejecución queda en rojo.
+**ej2-01:** Se creó `.github/workflows/ci.yml`: se ejecuta en cada `push` y `pull_request` hacia `main`, instala con `npm ci`, revisa el código con ESLint y corre `npm test`. Si una prueba falla, la ejecución queda en rojo.
 
 ![ej2-01](ej2-01-ci-yml-workflow.png)
 
-**ej2-05** — Configuración de ESLint que usa el paso de revisión del CI, con las variables globales de Node.js y Jest.
+**ej2-05:** Configuración de ESLint que usa el paso de revisión del CI, con las variables globales de Node.js y Jest.
 
 ![ej2-05](ej2-05-eslint-config.png)
 
-**ej2-10** — Se subieron `ci.yml`, el `Dockerfile`, el `.dockerignore` y el cambio de `/health` con `git push`, lo que dispara el CI automáticamente.
+**ej2-10:** Se subieron `ci.yml`, el `Dockerfile`, el `.dockerignore` y el cambio de `/health` con `git push`, lo que dispara el CI automáticamente.
 
 ![ej2-10](ej2-10-commit-push-ci-y-dockerfile.png)
 
-**ej2-11** — En la pestaña Actions aparece la ejecución **CI #1** del commit `a3c81ae`, en cola, iniciada por el `push` a `main`.
+**ej2-11:** En la pestaña Actions aparece la ejecución **CI #1** del commit `a3c81ae`, en cola, iniciada por el `push` a `main`.
 
 ![ej2-11](ej2-11-ci-en-cola.png)
 
-**ej2-12** — La ejecución de CI terminó con éxito (check verde) en 18 segundos.
+**ej2-12:** La ejecución de CI terminó con éxito (check verde) en 18 segundos.
 
 ![ej2-12](ej2-12-ci-exitoso.png)
 
-**ej2-13** — Dentro del job *Lint y pruebas*, el paso *Ejecutar pruebas* muestra las **8 pruebas aprobadas**: `/health`, creación válida (201), datos inválidos (400) y libro inexistente (404). Corren sin RDS, porque la capa de datos se simula con `jest.mock`.
+**ej2-13:** Dentro del job *Lint y pruebas*, el paso *Ejecutar pruebas* muestra las **8 pruebas aprobadas**: `/health`, creación válida (201), datos inválidos (400) y libro inexistente (404). Corren sin RDS, porque la capa de datos se simula con `jest.mock`.
 
 ![ej2-13](ej2-13-ci-pruebas-aprobadas.png)
 
 ### 2. Dockerfile e imagen ejecutable con configuración externa (10 pts)
 
-**ej2-04** — Se creó un `Dockerfile` de dos etapas con `node:20-alpine`: la primera instala solo las dependencias de producción y la segunda copia lo necesario y ejecuta la API como usuario `node`. La configuración de RDS no se copia a la imagen.
+**ej2-04:** Se creó un `Dockerfile` de dos etapas con `node:20-alpine`: la primera instala solo las dependencias de producción y la segunda copia lo necesario y ejecuta la API como usuario `node`. La configuración de RDS no se copia a la imagen.
 
 ![ej2-04](ej2-04-dockerfile.png)
 
-**ej2-03** — El `.dockerignore` deja fuera de la imagen `.env`, `*.pem`, `*.key`, `node_modules`, las pruebas y las evidencias.
+**ej2-03:** El `.dockerignore` deja fuera de la imagen `.env`, `*.pem`, `*.key`, `node_modules`, las pruebas y las evidencias.
 
 ![ej2-03](ej2-03-dockerignore.png)
 
-**ej2-02** — Se agregó el campo `commit` a `/health`: muestra el SHA del commit con el que se construyó la imagen, para saber qué versión está desplegada.
+**ej2-02:** Se agregó el campo `commit` a `/health`: muestra el SHA del commit con el que se construyó la imagen, para saber qué versión está desplegada.
 
 ![ej2-02](ej2-02-health-campo-commit.png)
 
-**ej2-06** — Se construyó la imagen localmente con `docker build -t api-libros:local .`; las 13 etapas terminaron sin errores.
+**ej2-06:** Se construyó la imagen localmente con `docker build -t api-libros:local .`; las 13 etapas terminaron sin errores.
 
 ![ej2-06](ej2-06-docker-build.png)
 
-**ej2-07** — Se ejecutó el contenedor con `docker run --env-file .env.example`: la configuración de RDS llega por variables de entorno y no está dentro de la imagen. `docker ps` muestra `api-libros-local` en estado *Up*.
+**ej2-07:** Se ejecutó el contenedor con `docker run --env-file .env.example`: la configuración de RDS llega por variables de entorno y no está dentro de la imagen. `docker ps` muestra `api-libros-local` en estado *Up*.
 
 ![ej2-07](ej2-07-docker-run-env-file.png)
 
-**ej2-08** — `curl http://localhost:3000/health` responde **200** con `"status":"ok"` y `"commit":"local"`: el contenedor funciona.
+**ej2-08:** `curl http://localhost:3000/health` responde **200** con `"status":"ok"` y `"commit":"local"`: el contenedor funciona.
 
 ![ej2-08](ej2-08-docker-health-200.png)
 
-**ej2-09** — Se detuvo y eliminó el contenedor de prueba con `docker stop` y `docker rm`.
+**ej2-09:** Se detuvo y eliminó el contenedor de prueba con `docker stop` y `docker rm`.
 
 ![ej2-09](ej2-09-docker-stop-y-rm.png)
 
-**ej2-14** — Se subieron al repositorio las evidencias de CI y Docker con `git add`, `git commit` y `git push`.
+**ej2-14:** Se subieron al repositorio las evidencias de CI y Docker con `git add`, `git commit` y `git push`.
 
 ![ej2-14](ej2-14-commit-push-evidencias-ci-docker.png)
 
@@ -344,110 +346,240 @@ Cada captura incluye una explicación breve de lo que se hizo y lo que demuestra
 
 **Preparación de la EC2**
 
-**ej2-15** — En la EC2 se instaló Docker con `sudo apt install -y docker.io`, para ejecutar la API como contenedor.
+**ej2-15:** En la EC2 se instaló Docker con `sudo apt install -y docker.io`, para ejecutar la API como contenedor.
 
 ![ej2-15](ej2-15-ec2-instalar-docker.png)
 
-**ej2-16** — Se agregó el usuario `ubuntu` al grupo `docker` con `sudo usermod -aG docker ubuntu`, para que el despliegue automático pueda usar Docker sin `sudo`.
+**ej2-16:** Se agregó el usuario `ubuntu` al grupo `docker` con `sudo usermod -aG docker ubuntu`, para que el despliegue automático pueda usar Docker sin `sudo`.
 
 ![ej2-16](ej2-16-ec2-usermod-grupo-docker.png)
 
-**ej2-17** — La configuración de RDS se copió a `/home/ubuntu/api-libros.env`, **fuera del repositorio y de la imagen**, con permisos `600` (`-rw-------`): solo el usuario `ubuntu` puede leerla. `grep DB_HOST` confirma el endpoint sin mostrar la contraseña.
+**ej2-17:** La configuración de RDS se copió a `/home/ubuntu/api-libros.env`, **fuera del repositorio y de la imagen**, con permisos `600` (`-rw-------`): solo el usuario `ubuntu` puede leerla. `grep DB_HOST` confirma el endpoint sin mostrar la contraseña.
 
 ![ej2-17](ej2-17-ec2-env-fuera-del-repo.png)
 
-**ej2-28** — Se detuvo la versión de PM2 (`pm2 delete api-libros`) para liberar el puerto 3000 que usará el contenedor. Mientras tanto, Nginx responde 502 hasta el primer despliegue.
+**ej2-28:** Se detuvo la versión de PM2 (`pm2 delete api-libros`) para liberar el puerto 3000 que usará el contenedor. Mientras tanto, Nginx responde 502 hasta el primer despliegue.
 
 ![ej2-28](ej2-28-pm2-detenido-502.png)
 
 **Credenciales como secrets de GitHub Actions**
 
-**ej2-18** — En Docker Hub se generó el token de acceso `github-actions-com610` con permiso *Repo Read & Write*. Se usa en lugar de la contraseña de la cuenta.
+**ej2-18:** En Docker Hub se generó el token de acceso `github-actions-com610` con permiso *Repo Read & Write*. Se usa en lugar de la contraseña de la cuenta.
 
 ![ej2-18](ej2-18-dockerhub-tokens.png)
 
-**ej2-19** — Se creó el usuario IAM `CMVP-github-deploy`, sin acceso a la consola, solo para que GitHub Actions abra y cierre el SSH durante el despliegue.
+**ej2-19:** Se creó el usuario IAM `CMVP-github-deploy`, sin acceso a la consola, solo para que GitHub Actions abra y cierre el SSH durante el despliegue.
 
 ![ej2-19](ej2-19-iam-usuario-creado.png)
 
-**ej2-20** — Política insertada en JSON: solo permite `AuthorizeSecurityGroupIngress` y `RevokeSecurityGroupIngress` sobre el grupo `sg-0b24bdf2736ade74f` (mínimo privilegio).
+**ej2-20:** Política insertada en JSON: solo permite `AuthorizeSecurityGroupIngress` y `RevokeSecurityGroupIngress` sobre el grupo `sg-0b24bdf2736ade74f` (mínimo privilegio).
 
 ![ej2-20](ej2-20-iam-politica-json.png)
 
-**ej2-21** — Revisión de la política `CMVP-abrir-ssh-github`: acceso limitado a escritura en EC2, restringido a ese grupo de seguridad y región.
+**ej2-21:** Revisión de la política `CMVP-abrir-ssh-github`: acceso limitado a escritura en EC2, restringido a ese grupo de seguridad y región.
 
 ![ej2-21](ej2-21-iam-politica-revisar.png)
 
-**ej2-22** — La política quedó asignada al usuario `CMVP-github-deploy`.
+**ej2-22:** La política quedó asignada al usuario `CMVP-github-deploy`.
 
 ![ej2-22](ej2-22-iam-politica-asignada.png)
 
-**ej2-23** — Creación del secret `DOCKER_USERNAME` en GitHub Actions.
+**ej2-23:** Creación del secret `DOCKER_USERNAME` en GitHub Actions.
 
 ![ej2-23](ej2-23-secret-docker-username.png)
 
-**ej2-24** — Creación del secret `SSH_HOST` con la Elastic IP de la EC2.
+**ej2-24:** Creación del secret `SSH_HOST` con la Elastic IP de la EC2.
 
 ![ej2-24](ej2-24-secret-ssh-host.png)
 
-**ej2-25** — Creación del secret `SSH_USER` con el usuario `ubuntu`.
+**ej2-25:** Creación del secret `SSH_USER` con el usuario `ubuntu`.
 
 ![ej2-25](ej2-25-secret-ssh-user.png)
 
-**ej2-26** — Creación del secret `EC2_SG_ID` con el ID del grupo de seguridad de la EC2.
+**ej2-26:** Creación del secret `EC2_SG_ID` con el ID del grupo de seguridad de la EC2.
 
 ![ej2-26](ej2-26-secret-ec2-sg-id.png)
 
-**ej2-27** — Lista de los **8 secrets** del repositorio: credenciales de Docker Hub, de AWS y de SSH a la EC2. GitHub nunca muestra sus valores.
+**ej2-27:** Lista de los **8 secrets** del repositorio: credenciales de Docker Hub, de AWS y de SSH a la EC2. GitHub nunca muestra sus valores.
 
 ![ej2-27](ej2-27-github-secrets-lista.png)
 
 **Primer despliegue automático**
 
-**ej2-29** — Se subió `.github/workflows/cd.yml` con `git push` a `main`.
+**ej2-29:** Se subió `.github/workflows/cd.yml` con `git push` a `main`.
 
 ![ej2-29](ej2-29-commit-push-cd.png)
 
-**ej2-30** — El push dispara dos workflows a la vez: **CI #3** y **CD #1**, ambos sobre el commit `e1c7cb6`.
+**ej2-30:** El push dispara dos workflows a la vez: **CI #3** y **CD #1**, ambos sobre el commit `e1c7cb6`.
 
 ![ej2-30](ej2-30-actions-ci-cd-en-progreso.png)
 
-**ej2-31** — Ambos workflows terminaron con éxito.
+**ej2-31:** Ambos workflows terminaron con éxito.
 
 ![ej2-31](ej2-31-actions-ci-cd-exitosos.png)
 
-**ej2-32** — El CI del mismo commit también pasó el lint y las pruebas.
+**ej2-32:** El CI del mismo commit también pasó el lint y las pruebas.
 
 ![ej2-32](ej2-32-ci-pruebas-commit-cd.png)
 
-**ej2-33** — El CD tiene **tres trabajos dependientes, en orden**: *Ejecutar pruebas*, luego *Construir y publicar imagen* y luego *Desplegar en EC2*. Cada uno solo empieza si el anterior terminó bien.
+**ej2-33:** El CD tiene **tres trabajos dependientes, en orden**: *Ejecutar pruebas*, luego *Construir y publicar imagen* y luego *Desplegar en EC2*. Cada uno solo empieza si el anterior terminó bien.
 
 ![ej2-33](ej2-33-cd-trabajos-en-orden.png)
 
-**ej2-34** — El trabajo de despliegue obtiene la IP del runner, abre el SSH solo para esa IP y ejecuta el script con la imagen `api-libros:<SHA del commit>`. Los valores de los secrets aparecen como `***`.
+**ej2-34:** El trabajo de despliegue obtiene la IP del runner, abre el SSH solo para esa IP y ejecuta el script con la imagen `api-libros:<SHA del commit>`. Los valores de los secrets aparecen como `***`.
 
 ![ej2-34](ej2-34-cd-despliegue-script.png)
 
-**ej2-35** — El script prueba primero la nueva versión en `127.0.0.1:3001` con `/health` y `/libros`, sin tocar la versión activa. Si no responde, el despliegue se cancela.
+**ej2-35:** El script prueba primero la nueva versión en `127.0.0.1:3001` con `/health` y `/libros`, sin tocar la versión activa. Si no responde, el despliegue se cancela.
 
 ![ej2-35](ej2-35-cd-script-prueba-puerto-3001.png)
 
-**ej2-36** — Salida del despliegue: no había versión anterior en Docker (`Version actual: ninguna`) y se descarga la imagen nueva identificada con el SHA `e1c7cb6a...`.
+**ej2-36:** Salida del despliegue: no había versión anterior en Docker (`Version actual: ninguna`) y se descarga la imagen nueva identificada con el SHA `e1c7cb6a...`.
 
 ![ej2-36](ej2-36-cd-despliegue-pull-imagen.png)
 
-**ej2-37** — En Docker Hub, el repositorio `monsievalda/api-libros` tiene la imagen publicada con el tag del **SHA del commit** (`e1c7cb6a...`) y con `latest`.
+**ej2-37:** En Docker Hub, el repositorio `monsievalda/api-libros` tiene la imagen publicada con el tag del **SHA del commit** (`e1c7cb6a...`) y con `latest`.
 
 ![ej2-37](ej2-37-dockerhub-tag-sha.png)
 
-**ej2-39** — Final del despliegue: la versión nueva respondió en `/health` con el `commit` de la imagen y el script terminó con **`Despliegue exitoso`**.
+**ej2-39:** Final del despliegue: la versión nueva respondió en `/health` con el `commit` de la imagen y el script terminó con **`Despliegue exitoso`**.
 
 ![ej2-39](ej2-39-cd-despliegue-exitoso.png)
 
-**ej2-40** — Después del despliegue, el workflow verifica **desde Internet** `/health` (con el `commit` desplegado) y `/libros` (con los datos de RDS). Luego cierra el SSH temporal: la regla de la IP del runner se elimina (`"Return": true`) y el grupo vuelve a aceptar SSH solo desde la IP del equipo local.
+**ej2-40:** Después del despliegue, el workflow verifica **desde Internet** `/health` (con el `commit` desplegado) y `/libros` (con los datos de RDS). Luego cierra el SSH temporal: la regla de la IP del runner se elimina (`"Return": true`) y el grupo vuelve a aceptar SSH solo desde la IP del equipo local.
 
 ![ej2-40](ej2-40-cd-verificacion-y-cierre-ssh.png)
 
-**ej2-38** — En la EC2, `docker ps` muestra el contenedor `api-libros` con la imagen del SHA del commit y el puerto **`127.0.0.1:3000->3000/tcp`**: el 3000 solo escucha dentro de la EC2 y el acceso desde Internet pasa por Nginx en el puerto 80.
+**ej2-38:** En la EC2, `docker ps` muestra el contenedor `api-libros` con la imagen del SHA del commit y el puerto **`127.0.0.1:3000->3000/tcp`**: el 3000 solo escucha dentro de la EC2 y el acceso desde Internet pasa por Nginx en el puerto 80.
 
 ![ej2-38](ej2-38-ec2-docker-ps-127-0-0-1.png)
+
+### 4. Verificación del despliegue y conservación de la versión anterior (10 pts)
+
+**Cambio visible de versión (1.0.0 a 2.0.0)**
+
+**ej2-41:** **Antes:** `/health` en producción muestra `"version": "1.0.0"` y el commit `e1c7cb6a...`.
+
+![ej2-41](ej2-41-health-antes-version-1.png)
+
+**ej2-42:** Se cambió la constante `VERSION` a `'2.0.0'` en `src/app.js`.
+
+![ej2-42](ej2-42-cambio-version-2-0-0.png)
+
+**ej2-43:** Antes de subir el cambio, `npm test` confirma que las 8 pruebas siguen pasando.
+
+![ej2-43](ej2-43-npm-test-version-2.png)
+
+**ej2-44:** Al hacer `push` a `main`, se ejecutan automáticamente **CI #5** y **CD #3** para el commit `cb91dd8`.
+
+![ej2-44](ej2-44-actions-ci-cd-version-2.png)
+
+**ej2-45:** El CI de la versión 2.0.0 terminó con éxito: lint y pruebas aprobadas.
+
+![ej2-45](ej2-45-ci-version-2-exitoso.png)
+
+**ej2-46:** El CD de la versión 2.0.0 terminó con éxito, con los tres trabajos en orden: pruebas, imagen y despliegue.
+
+![ej2-46](ej2-46-cd-version-2-tres-trabajos.png)
+
+**ej2-48:** La imagen se construye con `--build-arg GIT_SHA=cb91dd8...` y con los tags del **SHA del commit** y `latest`.
+
+![ej2-48](ej2-48-cd-build-arg-git-sha.png)
+
+**ej2-47:** La imagen se publica en Docker Hub como `api-libros:cb91dd8caf586fad19c7e353bdadbdfc3f704727` y `api-libros:latest`.
+
+![ej2-47](ej2-47-cd-imagen-tag-sha-version-2.png)
+
+**ej2-49:** El despliegue abre el puerto 22 **solo para la IP del runner** (`/32`) mediante el usuario IAM con permiso mínimo; al final del trabajo esa regla se elimina.
+
+![ej2-49](ej2-49-cd-abrir-ssh-runner.png)
+
+**ej2-50:** **Después:** `/health` muestra `"version": "2.0.0"` y el commit nuevo `cb91dd8...`. El cambio llegó a producción sin entrar manualmente a la EC2.
+
+![ej2-50](ej2-50-health-despues-version-2.png)
+
+**ej2-51:** En la EC2, `docker ps` muestra que el contenedor `api-libros` ahora usa la imagen `cb91dd8...` y sigue publicado solo en `127.0.0.1:3000`.
+
+![ej2-51](ej2-51-ec2-docker-ps-version-2.png)
+
+**ej2-52:** Antes de cambiar nada, el script guarda en `PREV` la imagen que está funcionando (`docker inspect`). Si la nueva versión falla después del cambio, esa imagen se vuelve a levantar.
+
+![ej2-52](ej2-52-cd-script-guarda-version-anterior.png)
+
+**ej2-53:** La versión 2.0.0 superó la comprobación en el puerto alterno y después a través de Nginx: el log termina con `Despliegue exitoso: ***/api-libros:cb91dd8...`.
+
+![ej2-53](ej2-53-cd-version-2-despliegue-exitoso.png)
+
+**ej2-54:** En el log del despliegue de la 2.0.0 se ve que el script identificó la **versión actual** (la imagen anterior) y la **versión nueva** `cb91dd8...` antes de reemplazarla.
+
+![ej2-54](ej2-54-cd-version-anterior-y-nueva.png)
+
+**Prueba de fallo: se conserva la versión anterior**
+
+**ej2-55:** Para probar la protección se preparó una versión `3.0.0` con un error a propósito.
+
+![ej2-55](ej2-55-version-3-con-error.png)
+
+**ej2-56:** El error: `server.js` escucha en el puerto fijo `3005` en lugar del configurado. Las pruebas pasan, pero el contenedor no responde en el puerto esperado.
+
+![ej2-56](ej2-56-server-puerto-3005-error.png)
+
+**ej2-57:** El `push` de la versión con error dispara **CI #6** y **CD #4**.
+
+![ej2-57](ej2-57-actions-version-error-en-progreso.png)
+
+**ej2-58:** El CI pasa porque las pruebas no dependen del puerto, pero el **CD #4 falla** en el despliegue.
+
+![ej2-58](ej2-58-actions-cd-falla-ci-pasa.png)
+
+**ej2-59:** El script probó la versión nueva en el puerto alterno, no respondió y terminó con **`La nueva version NO paso /health o /libros. Se conserva la version anterior.`** El contenedor activo nunca se tocó. Aun con el fallo, el paso *Cerrar el SSH temporal* se ejecutó.
+
+![ej2-59](ej2-59-cd-falla-se-conserva-version-anterior.png)
+
+**ej2-60:** Después del despliegue fallido, `/health` sigue respondiendo la **versión 2.0.0** (commit `cb91dd8`): la versión anterior se conservó y la API no dejó de funcionar.
+
+![ej2-60](ej2-60-health-sigue-version-2-tras-fallo.png)
+
+**ej2-62:** Se deshizo el error con `git revert HEAD --no-edit` y se subió con `git push`.
+
+![ej2-62](ej2-62-git-revert-y-push.png)
+
+**ej2-61:** El revert dispara un nuevo CI y CD.
+
+![ej2-61](ej2-61-actions-revert-en-progreso.png)
+
+**ej2-63:** El **CD #5** del revert terminó con éxito y la API volvió a desplegarse correctamente.
+
+![ej2-63](ej2-63-actions-revert-exitoso.png)
+
+**Pull request: una prueba fallida marca el CI como fallido y no despliega**
+
+**ej2-64:** En la rama `prueba-ci-falla` se cambió a propósito una prueba para esperar `500` en `/health`, que en realidad responde `200`.
+
+![ej2-64](ej2-64-rama-prueba-rota-500.png)
+
+**ej2-65:** Se hizo commit y `push` de la rama `prueba-ci-falla`, no de `main`.
+
+![ej2-65](ej2-65-commit-push-rama-prueba.png)
+
+**ej2-66:** GitHub ofrece crear el pull request desde la rama `prueba-ci-falla` hacia `main`.
+
+![ej2-66](ej2-66-rama-compare-pull-request.png)
+
+**ej2-67:** El pull request contiene un solo cambio: la prueba de `/health` pasa de esperar `200` a `500`.
+
+![ej2-67](ej2-67-pr-diff-200-a-500.png)
+
+**ej2-68:** Al abrir el pull request se ejecuta **solo el CI** (`CI / Lint y pruebas (pull_request)`). El CD no se dispara porque solo responde a `push` en `main`. El CI terminó en **fallo** por la prueba rota y el pull request se cerró sin fusionarse.
+
+![ej2-68](ej2-68-pr-ci-en-progreso.png)
+
+**ej2-69:** En la pestaña Actions, el **CI #8** del *Pull request #1* (rama `prueba-ci-falla`) terminó en **fallo** por la prueba rota. Para esa rama **no existe ninguna ejecución de CD**: el pull request no desplegó nada.
+
+![ej2-69](ej2-69-pr-ci-fallido-sin-cd.png)
+
+**Estado final**
+
+**ej2-70:** Estado final, abierto en una ventana de incógnito: `/health` responde la versión **2.0.0** con el commit `4b799ac` (el del revert). La API quedó funcionando y es accesible públicamente sin iniciar sesión.
+
+![ej2-70](ej2-70-health-final-incognito.png)
