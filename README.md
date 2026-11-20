@@ -45,7 +45,7 @@ La IP es una Elastic IP, por lo que no cambia aunque la instancia se reinicie.
 | .github/workflows/ci.yml | Workflow de integración continua. |
 | .github/workflows/cd.yml | Workflow de despliegue continuo en EC2. |
 | .env.example | Variables de entorno con valores ficticios. |
-| evidencias/ | Capturas del examen, explicadas en [evidencias/README.md](evidencias/README.md). |
+| [evidencias/](evidencias/) | Capturas del examen (135 imágenes). Para verlas todas con su explicación, abrir [📷 Ver evidencias con fotos](evidencias/README.md). |
 | INFORME.md | Informe completo del examen. |
 
 El .env real, las claves .pem, los tokens y las contraseñas **no** están en el repositorio: el .gitignore los excluye y en las capturas se taparon.
