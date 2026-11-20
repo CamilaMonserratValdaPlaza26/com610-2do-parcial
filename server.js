@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 const app = require('./src/app');
-const PORT = 3005; // ERROR intencional: el contenedor escucha en otro puerto
+const PORT = process.env.PORT || 3000;
 
 // Inicia el servidor
 app.listen(PORT, () => {
