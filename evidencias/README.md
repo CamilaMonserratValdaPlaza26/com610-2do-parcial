@@ -2,7 +2,7 @@
 
 Capturas del segundo examen parcial (COM610) — Valda Plaza Camila Monserrat.
 
-Cada captura incluye una explicación breve de lo que se hizo y lo que demuestra. Las contraseñas y la IP del equipo local están tapadas con un recuadro negro ("OCULTO").
+Cada captura incluye una explicación breve de lo que se hizo y lo que demuestra. Las contraseñas y la IP del equipo local están tapadas con un recuadro negro ("OCULTO"). Lo más importante de algunas capturas está marcado con un recuadro gris y una flecha.
 
 **URL pública de la API:** http://52.200.202.166 · Volver al [README principal](../README.md)
 
@@ -335,3 +335,119 @@ Cada captura incluye una explicación breve de lo que se hizo y lo que demuestra
 **ej2-09** — Se detuvo y eliminó el contenedor de prueba con `docker stop` y `docker rm`.
 
 ![ej2-09](ej2-09-docker-stop-y-rm.png)
+
+**ej2-14** — Se subieron al repositorio las evidencias de CI y Docker con `git add`, `git commit` y `git push`.
+
+![ej2-14](ej2-14-commit-push-evidencias-ci-docker.png)
+
+### 3. Workflow de CD con publicación, dependencias y despliegue seguro (15 pts)
+
+**Preparación de la EC2**
+
+**ej2-15** — En la EC2 se instaló Docker con `sudo apt install -y docker.io`, para ejecutar la API como contenedor.
+
+![ej2-15](ej2-15-ec2-instalar-docker.png)
+
+**ej2-16** — Se agregó el usuario `ubuntu` al grupo `docker` con `sudo usermod -aG docker ubuntu`, para que el despliegue automático pueda usar Docker sin `sudo`.
+
+![ej2-16](ej2-16-ec2-usermod-grupo-docker.png)
+
+**ej2-17** — La configuración de RDS se copió a `/home/ubuntu/api-libros.env`, **fuera del repositorio y de la imagen**, con permisos `600` (`-rw-------`): solo el usuario `ubuntu` puede leerla. `grep DB_HOST` confirma el endpoint sin mostrar la contraseña.
+
+![ej2-17](ej2-17-ec2-env-fuera-del-repo.png)
+
+**ej2-28** — Se detuvo la versión de PM2 (`pm2 delete api-libros`) para liberar el puerto 3000 que usará el contenedor. Mientras tanto, Nginx responde 502 hasta el primer despliegue.
+
+![ej2-28](ej2-28-pm2-detenido-502.png)
+
+**Credenciales como secrets de GitHub Actions**
+
+**ej2-18** — En Docker Hub se generó el token de acceso `github-actions-com610` con permiso *Repo Read & Write*. Se usa en lugar de la contraseña de la cuenta.
+
+![ej2-18](ej2-18-dockerhub-tokens.png)
+
+**ej2-19** — Se creó el usuario IAM `CMVP-github-deploy`, sin acceso a la consola, solo para que GitHub Actions abra y cierre el SSH durante el despliegue.
+
+![ej2-19](ej2-19-iam-usuario-creado.png)
+
+**ej2-20** — Política insertada en JSON: solo permite `AuthorizeSecurityGroupIngress` y `RevokeSecurityGroupIngress` sobre el grupo `sg-0b24bdf2736ade74f` (mínimo privilegio).
+
+![ej2-20](ej2-20-iam-politica-json.png)
+
+**ej2-21** — Revisión de la política `CMVP-abrir-ssh-github`: acceso limitado a escritura en EC2, restringido a ese grupo de seguridad y región.
+
+![ej2-21](ej2-21-iam-politica-revisar.png)
+
+**ej2-22** — La política quedó asignada al usuario `CMVP-github-deploy`.
+
+![ej2-22](ej2-22-iam-politica-asignada.png)
+
+**ej2-23** — Creación del secret `DOCKER_USERNAME` en GitHub Actions.
+
+![ej2-23](ej2-23-secret-docker-username.png)
+
+**ej2-24** — Creación del secret `SSH_HOST` con la Elastic IP de la EC2.
+
+![ej2-24](ej2-24-secret-ssh-host.png)
+
+**ej2-25** — Creación del secret `SSH_USER` con el usuario `ubuntu`.
+
+![ej2-25](ej2-25-secret-ssh-user.png)
+
+**ej2-26** — Creación del secret `EC2_SG_ID` con el ID del grupo de seguridad de la EC2.
+
+![ej2-26](ej2-26-secret-ec2-sg-id.png)
+
+**ej2-27** — Lista de los **8 secrets** del repositorio: credenciales de Docker Hub, de AWS y de SSH a la EC2. GitHub nunca muestra sus valores.
+
+![ej2-27](ej2-27-github-secrets-lista.png)
+
+**Primer despliegue automático**
+
+**ej2-29** — Se subió `.github/workflows/cd.yml` con `git push` a `main`.
+
+![ej2-29](ej2-29-commit-push-cd.png)
+
+**ej2-30** — El push dispara dos workflows a la vez: **CI #3** y **CD #1**, ambos sobre el commit `e1c7cb6`.
+
+![ej2-30](ej2-30-actions-ci-cd-en-progreso.png)
+
+**ej2-31** — Ambos workflows terminaron con éxito.
+
+![ej2-31](ej2-31-actions-ci-cd-exitosos.png)
+
+**ej2-32** — El CI del mismo commit también pasó el lint y las pruebas.
+
+![ej2-32](ej2-32-ci-pruebas-commit-cd.png)
+
+**ej2-33** — El CD tiene **tres trabajos dependientes, en orden**: *Ejecutar pruebas*, luego *Construir y publicar imagen* y luego *Desplegar en EC2*. Cada uno solo empieza si el anterior terminó bien.
+
+![ej2-33](ej2-33-cd-trabajos-en-orden.png)
+
+**ej2-34** — El trabajo de despliegue obtiene la IP del runner, abre el SSH solo para esa IP y ejecuta el script con la imagen `api-libros:<SHA del commit>`. Los valores de los secrets aparecen como `***`.
+
+![ej2-34](ej2-34-cd-despliegue-script.png)
+
+**ej2-35** — El script prueba primero la nueva versión en `127.0.0.1:3001` con `/health` y `/libros`, sin tocar la versión activa. Si no responde, el despliegue se cancela.
+
+![ej2-35](ej2-35-cd-script-prueba-puerto-3001.png)
+
+**ej2-36** — Salida del despliegue: no había versión anterior en Docker (`Version actual: ninguna`) y se descarga la imagen nueva identificada con el SHA `e1c7cb6a...`.
+
+![ej2-36](ej2-36-cd-despliegue-pull-imagen.png)
+
+**ej2-37** — En Docker Hub, el repositorio `monsievalda/api-libros` tiene la imagen publicada con el tag del **SHA del commit** (`e1c7cb6a...`) y con `latest`.
+
+![ej2-37](ej2-37-dockerhub-tag-sha.png)
+
+**ej2-39** — Final del despliegue: la versión nueva respondió en `/health` con el `commit` de la imagen y el script terminó con **`Despliegue exitoso`**.
+
+![ej2-39](ej2-39-cd-despliegue-exitoso.png)
+
+**ej2-40** — Después del despliegue, el workflow verifica **desde Internet** `/health` (con el `commit` desplegado) y `/libros` (con los datos de RDS). Luego cierra el SSH temporal: la regla de la IP del runner se elimina (`"Return": true`) y el grupo vuelve a aceptar SSH solo desde la IP del equipo local.
+
+![ej2-40](ej2-40-cd-verificacion-y-cierre-ssh.png)
+
+**ej2-38** — En la EC2, `docker ps` muestra el contenedor `api-libros` con la imagen del SHA del commit y el puerto **`127.0.0.1:3000->3000/tcp`**: el 3000 solo escucha dentro de la EC2 y el acceso desde Internet pasa por Nginx en el puerto 80.
+
+![ej2-38](ej2-38-ec2-docker-ps-127-0-0-1.png)
