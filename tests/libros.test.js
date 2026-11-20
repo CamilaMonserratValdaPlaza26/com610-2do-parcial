@@ -15,7 +15,8 @@ beforeEach(() => {
 describe('API de libros', () => {
   test('GET /health responde 200 y status ok', async () => {
     const res = await request(app).get('/health');
-    expect(res.statusCode).toBe(200);
+    expect(res.statusCode).toBe(500);
+    // Cambio de estas dos líneas para pull request SOY MONSEEEE VALDA
     expect(res.body.status).toBe('ok');
   });
 
