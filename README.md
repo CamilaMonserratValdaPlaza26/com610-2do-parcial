@@ -10,7 +10,7 @@
 
 API para gestionar un catálogo de libros. Se ejecuta en **Amazon EC2**, guarda los datos en **Amazon RDS for MySQL**, se publica con **Nginx** en el puerto 80 y se prueba y despliega automáticamente con **GitHub Actions**.
 
-📄 **Informe completo, con carátula, cada paso y cada comando explicado:** [INFORME.md](INFORME.md)
+**Informe completo, con carátula, cada paso y cada comando explicado:** [INFORME.md](INFORME.md)
 
 ## URL pública de la API
 
@@ -45,7 +45,7 @@ La IP es una Elastic IP, por lo que no cambia aunque la instancia se reinicie.
 | .github/workflows/ci.yml | Workflow de integración continua. |
 | .github/workflows/cd.yml | Workflow de despliegue continuo en EC2. |
 | .env.example | Variables de entorno con valores ficticios. |
-| [evidencias/](evidencias/) | Capturas del examen (135 imágenes). Para verlas todas con su explicación, abrir [📷 Ver evidencias con fotos](evidencias/README.md). |
+| [evidencias/](evidencias/) | Capturas del examen (135 imágenes). Para verlas todas con su explicación, abrir [Ver evidencias con fotos](evidencias/README.md). |
 | INFORME.md | Informe completo del examen. |
 
 El .env real, las claves .pem, los tokens y las contraseñas **no** están en el repositorio: el .gitignore los excluye y en las capturas se taparon.
