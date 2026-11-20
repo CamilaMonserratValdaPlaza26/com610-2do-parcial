@@ -3,7 +3,7 @@ const express = require('express');
 const repo = require('./librosRepo');
 
 // Version visible en /health (se cambia para demostrar un nuevo despliegue)
-const VERSION = '2.0.0';
+const VERSION = '3.0.0';
 
 const app = express();
 app.use(express.json());
